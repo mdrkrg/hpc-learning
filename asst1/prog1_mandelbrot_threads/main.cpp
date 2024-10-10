@@ -25,6 +25,13 @@ extern void mandelbrotThreadVer2(
     int maxIterations,
     int output[]);
 
+extern void mandelbrotThreadVer3(
+    int numThreads,
+    float x0, float y0, float x1, float y1,
+    int width, int height,
+    int maxIterations,
+    int output[]);
+
 extern void writePPMImage(
     int* data,
     int width, int height,
@@ -75,9 +82,9 @@ bool verifyResult (int *gold, int *result, int width, int height) {
 
 int main(int argc, char** argv) {
 
-    const unsigned int width = 1600;
-    const unsigned int height = 1200;
-    const int maxIterations = 256;
+    const unsigned int width = 1600 * 2;
+    const unsigned int height = 1200 * 2;
+    const int maxIterations = 256 * 2;
     int numThreads = 32;
 
     float x0 = -2;
@@ -129,6 +136,7 @@ int main(int argc, char** argv) {
     /* int* output_serial = new int[width*height]; */
     int* output_thread = new int[width*height];
     int* output_thread_2 = new int[width*height];
+    int* output_thread_3 = new int[width*height];
     
     //
     // Run the serial implementation.  Run the code three times and
@@ -175,6 +183,19 @@ int main(int argc, char** argv) {
     printf("[mandelbrot thread]:\t\t[%.3f] ms\n", minThread_2 * 1000);
     writePPMImage(output_thread_2, width, height, "mandelbrot-thread-2.ppm", maxIterations);
 
+    double minThread_3 = 1e30;
+    for (int i = 0; i < 5; ++i) {
+      memset(output_thread_3, 0, width * height * sizeof(int));
+        double startTime = CycleTimer::currentSeconds();
+        mandelbrotThreadVer3(numThreads, x0, y0, x1, y1, width, height, maxIterations, output_thread_3);
+        double endTime = CycleTimer::currentSeconds();
+        minThread_3 = std::min(minThread_3, endTime - startTime);
+    }
+
+    printf("[mandelbrot thread ver3]:\t\t[%.3f] ms\n", minThread_3 * 1000);
+    writePPMImage(output_thread_3, width, height, "mandelbrot-thread-3.ppm", maxIterations);
+
+
 
     /* if (! verifyResult (output_serial, output_thread, width, height)) { */
     /*     printf ("Error : Output from threads does not match serial output\n"); */
@@ -190,6 +211,7 @@ int main(int argc, char** argv) {
 
         delete[] output_thread;
         delete[] output_thread_2;
+        delete[] output_thread_3;
 
         return 1;
     }
@@ -197,10 +219,12 @@ int main(int argc, char** argv) {
     // compute speedup
     /* printf("\t\t\t\t(%.2fx speedup from %d threads)\n", minSerial/minThread, numThreads); */
     printf("\t\t\t\t(%.2fx speedup compared to ver1)\n", minThread/minThread_2);
+    printf("\t\t\t\t(%.2fx speedup of ver3 compared to ver2)\n", minThread_2/minThread_3);
 
     /* delete[] output_serial; */
     delete[] output_thread;
     delete[] output_thread_2;
+    delete[] output_thread_3;
 
     return 0;
 }

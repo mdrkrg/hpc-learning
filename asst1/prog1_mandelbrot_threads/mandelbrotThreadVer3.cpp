@@ -29,7 +29,7 @@ extern void mandelbrotSerial(
 // workerThreadStart --
 //
 // Thread entrypoint.
-void workerThreadStartVer2(WorkerArgs * const args) {
+void workerThreadStartVer3(WorkerArgs * const args) {
     // printf("Hello world from thread %d\n", args->threadId);
 
     int heightChunk = args->height / args->numThreads;
@@ -59,7 +59,7 @@ void workerThreadStartVer2(WorkerArgs * const args) {
 //
 // Multi-threaded implementation of mandelbrot set image generation.
 // Threads of execution are created by spawning std::threads.
-void mandelbrotThreadVer2(
+void mandelbrotThreadVer3(
     int numThreads,
     float x0, float y0, float x1, float y1,
     int width, int height,
@@ -97,16 +97,15 @@ void mandelbrotThreadVer2(
     // Spawn the worker threads.  Note that only numThreads-1 std::threads
     // are created and the main application thread is used as a worker
     // as well.
-    for (int i=0; i<numThreads; i++) {
-        workers[i] = std::thread(workerThreadStartVer2, &args[i]);
+    for (int i=1; i<numThreads; i++) {
+        workers[i] = std::thread(workerThreadStartVer3, &args[i]);
     }
     
-    // Notice that this **remaining part might be relative small**,
-    // compare to the workload of each worker thread that deal with the main part.
-    // So a naive approach to launch a new thead to handle the remaining part
-    // may even draw back the performance.
     int remainHeight = height - height_chunk * numThreads;
     if (remainHeight) {
+      // first start the zeroth worker
+      workers[0] = std::thread(workerThreadStartVer3, &args[0]);
+
       // The arg for the remaining part
       args[numThreads] = {
         .x0 = x0,
@@ -123,12 +122,19 @@ void mandelbrotThreadVer2(
         .isRemain = true,
       };
 
+      // Notice that this **remaining part might be relative small**,
+      // compare to the workload of each worker thread that deal with the main part.
+      // So a naive approach to launch a new thead to handle the remaining part
+      // may even draw back the performance.
+
       // start the remain part
-      workerThreadStartVer2(&args[numThreads]);
+      workerThreadStartVer3(&args[numThreads]);
+    } else {
+      workerThreadStartVer3(&args[0]);
     }
 
-    // join worker threads
-    for (int i=0; i<numThreads; i++) {
+    // join worker threads, conditionally join zeroth
+    for (int i=remainHeight ? 0 : 1; i<numThreads; i++) {
         workers[i].join();
     }
 }
