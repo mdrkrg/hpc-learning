@@ -21,8 +21,6 @@ clean:
 		/bin/rm -rf $(OBJDIR) *.ppm *~ $(APP_NAME)
 
 OBJS=$(OBJDIR)/main.o $(OBJDIR)/mandelbrotSerial.o $(OBJDIR)/mandelbrotThread.o $(PPM_OBJ)
-OBJS+=$(OBJDIR)/mandelbrotThreadVer2.o
-OBJS+=$(OBJDIR)/mandelbrotThreadVer3.o
 
 $(APP_NAME): dirs $(OBJS)
 		$(CXX) $(CXXFLAGS) -o $@ $(OBJS) -lm -lpthread
