@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <algorithm>
+#include <numeric>
 #include <getopt.h>
 #include <math.h>
 #include "CS149intrin.h"
@@ -366,11 +367,20 @@ float arraySumVector(float* values, int N) {
   //
   // CS149 STUDENTS TODO: Implement your vectorized version of arraySumSerial here
   //
+
+  float sum = 0.0f;
+  __cs149_vec_float vSum = _cs149_vset_float(0.0f);
+  __cs149_mask maskFull = _cs149_init_ones();
   
   for (int i=0; i<N; i+=VECTOR_WIDTH) {
-
+    __cs149_vec_float vTmp = _cs149_vset_float(0.0f);
+    _cs149_vload_float(vTmp, values + i, maskFull);
+    _cs149_vadd_float(vSum, vSum, vTmp, maskFull);
   }
 
-  return 0.0;
+  float array[VECTOR_WIDTH] = {};
+  _cs149_vstore_float(array, vSum, maskFull);
+
+  return accumulate(begin(array), end(array), 0.0, plus<float>());
 }
 

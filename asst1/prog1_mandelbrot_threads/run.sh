@@ -25,6 +25,7 @@ if [ "$thread" -le 1 ] || [ "$thread" -gt 32 ]; then
 fi
 
 make
+rm -f ./result.txt
 
 for ((i = 2; i <= ${1}; i++)); do
   ./mandelbrot --threads ${i} -v 1 | tee -a ./result.txt
