@@ -1,0 +1,11 @@
+TODO: 广播粒子数据到所有进程
+MPI_Bcast(particles, N * sizeof(Particle), MPI_BYTE, 0, MPI_COMM_WORLD);
+
+TODO: 同步所有进程模拟的信息
+MPI_Allgather(local_particles, local_n * sizeof(Particle), MPI_BYTE ,particles, local_n * sizeof(Particle), MPI_BYTE, MPI_COMM_WORLD);
+
+TODO: 归约所有进程计算的局部动量分量和能量（4次归约操作，到0号进程）
+MPI_Reduce(&local_momentum_x, &global_momentum_x, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+MPI_Reduce(&local_momentum_y, &global_momentum_y, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+MPI_Reduce(&local_momentum_z, &global_momentum_z, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+MPI_Reduce(&local_energy, &global_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);

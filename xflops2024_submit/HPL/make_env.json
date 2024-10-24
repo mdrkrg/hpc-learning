@@ -1,0 +1,7 @@
+{
+  "modules": [
+    "bisheng/2.5.0",
+    "hypermpi/4.1.1-bisheng-2.5.0",
+    "openblas/0.3.21-gcc-10.3.1"
+  ]
+}
